@@ -186,7 +186,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);border-col
 <div id="admin">
  <div class="ah">
   <b style="font-size:18px">لوحة الإدارة — Jasmine Style</b>
-  <div class="row"><button class="btn sm dark" style="background:#333" onclick="closeAdmin()">عرض الموقع</button><button class="btn sm red" onclick="logout()">تسجيل خروج</button></div>
+  <div class="row"><button class="btn sm" onclick="publishNow()">🚀 نشر للعملاء</button><button class="btn sm dark" style="background:#333" onclick="closeAdmin()">عرض الموقع</button><button class="btn sm red" onclick="logout()">تسجيل خروج</button></div>
  </div>
  <div class="tabs">
   <button class="on" data-t="dash" onclick="tab('dash')">الإحصائيات</button>
@@ -303,7 +303,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);border-col
 const ADMIN_USER='12345678910', ADMIN_PASS='12345678910';
 const $=id=>document.getElementById(id);
 const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem('jsw_'+k));return v==null?d:v}catch(e){return d}};
-const save=(k,v)=>{try{localStorage.setItem('jsw_'+k,JSON.stringify(v))}catch(e){toast('المساحة ممتلئة، استخدم صور أصغر')}};
+const save=(k,v)=>{try{localStorage.setItem('jsw_'+k,JSON.stringify(v))}catch(e){toast('المساحة ممتلئة، استخدم صور أصغر')}if(k==='cats'||k==='prods'||k==='settings')schedAuto()};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 let cats=load('cats',[{id:'dress',name:'فساتين',icon:'👗'},{id:'tops',name:'بلوزات',icon:'👚'},{id:'shoes',name:'أحذية',icon:'👠'},{id:'bags',name:'شنط',icon:'👜'},{id:'acc',name:'إكسسوارات',icon:'💍'}]);
@@ -459,7 +459,20 @@ function tab(t){
   P.innerHTML=orders.length?`<div class="tw"><table class="tbl"><tr><th>رقم</th><th>التاريخ</th><th>العميل</th><th>الموبايل</th><th>العنوان</th><th>المنتجات</th><th>الإجمالي</th><th>الدفع</th><th>الحالة</th><th></th></tr>${orders.map(o=>`<tr><td>#${esc(o.no||'')}</td><td>${esc(o.date)}</td><td>${esc(o.name)}</td><td>${esc(o.phone)}</td><td>${esc(o.addr)}</td><td>${o.items.map(i=>esc(i.name)+' ×'+i.q).join('<br>')}</td><td>${o.total}</td><td>${payCell(o)}</td><td><select onchange="ordSt(${o.id},this.value)" style="min-width:100px">${['جديد','قيد التجهيز','تم الشحن','تم التسليم','ملغي'].map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="btn sm red" onclick="delOrd(${o.id})">حذف</button></td></tr>`).join('')}</table></div>`:'<div class="empty">لا توجد طلبات بعد</div>';
  }
  if(t==='set'){
-  P.innerHTML=`<div class="box" style="max-width:420px;margin:0"><label>رقم واتساب المتجر</label><input id="swa" value="${esc(settings.wa)}"><label>رقم فودافون كاش لاستلام التحويلات</label><input id="svf" value="${esc(settings.vf||'')}" inputmode="tel"><label>رابط صفحة فيسبوك (سيبه فاضي لإخفائه)</label><input id="sfb" value="${esc(settings.fb==null?DEF_FB:settings.fb)}" dir="ltr"><label>الشريط المتحرك أعلى الموقع (سيبه فاضي لإخفائه)</label><textarea id="stk" rows="2">${esc(tickerTxt())}</textarea><label>الكلام اللي بيظهر في أول الصفحة (تحت اسم المتجر)</label><textarea id="sh" rows="3">${esc(heroTxtV())}</textarea><button class="btn" style="margin-top:14px" onclick="saveSet()">حفظ</button></div>`;
+  P.innerHTML=`<div class="box" style="max-width:420px;margin:0"><label>رقم واتساب المتجر</label><input id="swa" value="${esc(settings.wa)}"><label>رقم فودافون كاش لاستلام التحويلات</label><input id="svf" value="${esc(settings.vf||'')}" inputmode="tel"><label>رابط صفحة فيسبوك (سيبه فاضي لإخفائه)</label><input id="sfb" value="${esc(settings.fb==null?DEF_FB:settings.fb)}" dir="ltr"><label>الشريط المتحرك أعلى الموقع (سيبه فاضي لإخفائه)</label><textarea id="stk" rows="2">${esc(tickerTxt())}</textarea><label>الكلام اللي بيظهر في أول الصفحة (تحت اسم المتجر)</label><textarea id="sh" rows="3">${esc(heroTxtV())}</textarea><button class="btn" style="margin-top:14px" onclick="saveSet()">حفظ</button></div>
+  <div class="box" style="max-width:420px;margin:14px 0 0"><h3>🌐 نشر التعديلات للعملاء</h3>
+  <p style="font-size:14px;margin-bottom:6px"><b>النشر التلقائي:</b> املأ بيانات GitHub مرة واحدة، وبعدها زر "🚀 نشر للعملاء" يرفع كل حاجة بضغطة.</p>
+  <label>اسم حساب GitHub</label><input id="gho" dir="ltr" value="${esc(load('gh',{}).owner||'')}" placeholder="jasmine-style">
+  <label>اسم المستودع (Repository)</label><input id="ghr" dir="ltr" value="${esc(load('gh',{}).repo||'')}">
+  <label>الفرع</label><input id="ghb" dir="ltr" value="${esc(load('gh',{}).branch||'main')}">
+  <label>التوكن (Token)</label><input id="ght" type="password" dir="ltr" value="${esc(load('gh',{}).token||'')}" autocomplete="off">
+  <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="gha" style="width:auto" ${load('gh',{}).auto?'checked':''}>نشر تلقائي بعد كل تعديل (بعد 3 ثواني)</label>
+  <div class="row" style="margin:10px 0 18px"><button class="btn sm" onclick="saveGh()">حفظ بيانات النشر</button></div>
+  <hr style="border:0;border-top:1px solid var(--line);margin-bottom:12px"><b style="font-size:14px">أو الطريقة اليدوية:</b>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:10px">تعديلاتك بتتحفظ على جهازك بس. عشان تظهر للعملاء: حمّل الملف ده وارفعه على GitHub بنفس الاسم <b>data.json</b> جنب index.html (Add file ← Upload files، ويستبدل القديم).</p>
+  <div class="row"><button class="btn" onclick="exportData()">⬇️ تحميل data.json</button></div>
+  <label style="margin-top:14px">استيراد data.json (لو بتشتغل من جهاز تاني)</label><input type="file" id="impf" accept=".json,application/json" onchange="importData(this)">
+  <div class="row" style="margin-top:12px"><button class="btn sm red" onclick="ask('مسح تعديلات الجهاز ده وتحميل النسخة المنشورة؟',resetLocal)">مسح تعديلات الجهاز</button></div></div>`;
  }
 }
 function payCell(o){
@@ -521,7 +534,67 @@ function saveProd(){
 
 /* init */
 $('waShow').textContent=settings.wa;
-applySettings();renderCats();renderGrid();updCart();
+let _at=null;
+function schedAuto(){
+ const g=load('gh',{});
+ if(!g.auto||!g.token||$('admin').style.display!=='block')return;
+ clearTimeout(_at);_at=setTimeout(()=>publishNow(true),3000);
+}
+async function publishNow(auto){
+ const g=load('gh',{});
+ if(!g.owner||!g.repo||!g.token){toast('اكمل بيانات GitHub من الإعدادات الأول');tab('set');return}
+ const br=g.branch||'main';
+ const api=`https://api.github.com/repos/${encodeURIComponent(g.owner)}/${encodeURIComponent(g.repo)}/contents/data.json`;
+ const H={Authorization:'Bearer '+g.token,Accept:'application/vnd.github+json'};
+ toast('جاري النشر...');
+ try{
+  let sha;
+  const r=await fetch(api+'?ref='+br,{headers:H});
+  if(r.ok)sha=(await r.json()).sha;else if(r.status!==404)throw new Error(r.status);
+  const b64=btoa(unescape(encodeURIComponent(JSON.stringify({cats,prods,settings}))));
+  const res=await fetch(api,{method:'PUT',headers:H,body:JSON.stringify({message:'Update store data',content:b64,sha,branch:br})});
+  if(!res.ok)throw new Error(res.status);
+  toast('تم النشر ✓ هيظهر للعملاء خلال دقيقة');
+ }catch(e){toast('فشل النشر، راجع بيانات GitHub (الخطأ: '+e.message+')')}
+}
+function saveGh(){
+ const g={owner:$('gho').value.trim(),repo:$('ghr').value.trim(),token:$('ght').value.trim(),branch:$('ghb').value.trim()||'main',auto:$('gha').checked};
+ save('gh',g);toast('تم حفظ بيانات النشر ✓');
+}
+const hasLocal=k=>{try{return localStorage.getItem('jsw_'+k)!==null}catch(e){return false}};
+function exportData(){
+ const d=JSON.stringify({cats,prods,settings});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));
+ a.download='data.json';document.body.appendChild(a);a.click();a.remove();
+ toast('تم تحميل data.json — ارفعه على GitHub ✓');
+}
+function importData(inp){
+ const f=inp.files[0];if(!f)return;
+ const r=new FileReader();
+ r.onload=()=>{try{const d=JSON.parse(r.result);
+  if(d.cats){cats=d.cats;save('cats',cats)}
+  if(d.prods){prods=d.prods;save('prods',prods)}
+  if(d.settings){settings={...settings,...d.settings};save('settings',settings)}
+  applySettings();tab('set');toast('تم الاستيراد ✓')}catch(e){toast('ملف غير صالح')}};
+ r.readAsText(f);
+}
+function resetLocal(){['cats','prods','settings'].forEach(k=>{try{localStorage.removeItem('jsw_'+k)}catch(e){}});location.reload()}
+async function boot(){
+ if(!hasLocal('cats')||!hasLocal('prods')||!hasLocal('settings')){
+  try{
+   const r=await fetch('data.json?v='+Date.now(),{cache:'no-store'});
+   if(r.ok){const d=await r.json();
+    if(!hasLocal('cats')&&d.cats)cats=d.cats;
+    if(!hasLocal('prods')&&d.prods)prods=d.prods;
+    if(!hasLocal('settings')&&d.settings)settings={...settings,...d.settings};
+   }
+  }catch(e){}
+ }
+ $('waShow').textContent=settings.wa;
+ applySettings();renderCats();renderGrid();updCart();
+}
+boot();
 </script>
 </body>
 </html>
