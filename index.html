@@ -177,6 +177,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);border-col
  <div class="logo">Jasmine <span>Style</span></div>
  <p>أناقتك تبدأ من هنا</p>
  <p style="margin-top:8px">واتساب: <span id="waShow"></span></p>
+ <p style="margin-top:8px"><a id="fbLink" href="https://www.facebook.com/jasmine1style" target="_blank" rel="noopener">📘 تابعونا على فيسبوك</a></p>
  <p style="margin-top:14px;font-size:13px">© 2026 Jasmine Style — جميع الحقوق محفوظة | <a onclick="openLogin()">الإدارة</a></p>
 </footer>
 </div>
@@ -458,7 +459,7 @@ function tab(t){
   P.innerHTML=orders.length?`<div class="tw"><table class="tbl"><tr><th>رقم</th><th>التاريخ</th><th>العميل</th><th>الموبايل</th><th>العنوان</th><th>المنتجات</th><th>الإجمالي</th><th>الدفع</th><th>الحالة</th><th></th></tr>${orders.map(o=>`<tr><td>#${esc(o.no||'')}</td><td>${esc(o.date)}</td><td>${esc(o.name)}</td><td>${esc(o.phone)}</td><td>${esc(o.addr)}</td><td>${o.items.map(i=>esc(i.name)+' ×'+i.q).join('<br>')}</td><td>${o.total}</td><td>${payCell(o)}</td><td><select onchange="ordSt(${o.id},this.value)" style="min-width:100px">${['جديد','قيد التجهيز','تم الشحن','تم التسليم','ملغي'].map(s=>`<option ${s===o.status?'selected':''}>${s}</option>`).join('')}</select></td><td><button class="btn sm red" onclick="delOrd(${o.id})">حذف</button></td></tr>`).join('')}</table></div>`:'<div class="empty">لا توجد طلبات بعد</div>';
  }
  if(t==='set'){
-  P.innerHTML=`<div class="box" style="max-width:420px;margin:0"><label>رقم واتساب المتجر</label><input id="swa" value="${esc(settings.wa)}"><label>رقم فودافون كاش لاستلام التحويلات</label><input id="svf" value="${esc(settings.vf||'')}" inputmode="tel"><label>الشريط المتحرك أعلى الموقع (سيبه فاضي لإخفائه)</label><textarea id="stk" rows="2">${esc(tickerTxt())}</textarea><label>الكلام اللي بيظهر في أول الصفحة (تحت اسم المتجر)</label><textarea id="sh" rows="3">${esc(heroTxtV())}</textarea><button class="btn" style="margin-top:14px" onclick="saveSet()">حفظ</button></div>`;
+  P.innerHTML=`<div class="box" style="max-width:420px;margin:0"><label>رقم واتساب المتجر</label><input id="swa" value="${esc(settings.wa)}"><label>رقم فودافون كاش لاستلام التحويلات</label><input id="svf" value="${esc(settings.vf||'')}" inputmode="tel"><label>رابط صفحة فيسبوك (سيبه فاضي لإخفائه)</label><input id="sfb" value="${esc(settings.fb==null?DEF_FB:settings.fb)}" dir="ltr"><label>الشريط المتحرك أعلى الموقع (سيبه فاضي لإخفائه)</label><textarea id="stk" rows="2">${esc(tickerTxt())}</textarea><label>الكلام اللي بيظهر في أول الصفحة (تحت اسم المتجر)</label><textarea id="sh" rows="3">${esc(heroTxtV())}</textarea><button class="btn" style="margin-top:14px" onclick="saveSet()">حفظ</button></div>`;
  }
 }
 function payCell(o){
@@ -466,6 +467,7 @@ function payCell(o){
  return `فودافون كاش<br><small>من: ${esc(o.vf.sender)}<br>عملية: ${esc(o.vf.tx)}</small><br><button class="btn sm dark" onclick="viewImg(${o.id})">عرض الصورة</button><br>`+(o.payOk?`<span class="pill ok">تم التأكيد</span> <button class="btn sm" onclick="togglePay(${o.id})">إلغاء</button>`:`<span class="pill wait">بانتظار المراجعة</span> <button class="btn sm" onclick="togglePay(${o.id})">تأكيد</button>`);
 }
 function togglePay(id){const o=orders.find(x=>x.id===id);o.payOk=!o.payOk;save('orders',orders);tab('orders')}
+const DEF_FB='https://www.facebook.com/jasmine1style';
 const DEF_TICK='شحن لجميع المحافظات 🚚 | الدفع عند الاستلام أو فودافون كاش 💕';
 const DEF_HERO='أناقتك تبدأ من هنا. فساتين، بلوزات، أحذية وإكسسوارات بأحدث الموضات وأفضل سعر.';
 const tickerTxt=()=>settings.ticker==null?DEF_TICK:settings.ticker;
@@ -475,8 +477,10 @@ function applySettings(){
  $('topbar').style.display=t?'block':'none';
  if(t){const half=Array(8).fill('<span>'+esc(t)+'</span>').join('');$('trk').innerHTML=half+half}
  $('heroTxt').textContent=heroTxtV();
+ const fb=settings.fb==null?DEF_FB:settings.fb;
+ const e=$('fbLink');e.href=fb||'#';e.parentElement.style.display=fb?'':'none';
 }
-function saveSet(){settings.ticker=$('stk').value.trim();settings.hero=$('sh').value.trim();settings.vf=$('svf').value.trim();settings.wa=$('swa').value.trim();save('settings',settings);$('waShow').textContent=settings.wa;applySettings();toast('تم الحفظ ✓')}
+function saveSet(){settings.fb=$('sfb').value.trim();settings.ticker=$('stk').value.trim();settings.hero=$('sh').value.trim();settings.vf=$('svf').value.trim();settings.wa=$('swa').value.trim();save('settings',settings);$('waShow').textContent=settings.wa;applySettings();toast('تم الحفظ ✓')}
 function ordSt(id,s){const o=orders.find(x=>x.id===id);o.status=s;save('orders',orders);toast('تم تحديث الحالة')}
 let _cf=null;
 function ask(msg,fn){$('cfMsg').textContent=msg;_cf=fn;$('cfOv').classList.add('show')}
